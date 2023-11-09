@@ -23,9 +23,10 @@ import uk.gov.hmrc.performance.conf.ServicesConfiguration
 
 object ReturnsRequests extends ServicesConfiguration {
 
-  val baseUrl: String = baseUrlFor("ioss-returns-frontend")
-  val route: String   = "/pay-vat-on-goods-sold-to-eu/import-one-stop-shop-returns-payments"
-  val fullUrl: String = baseUrl + route
+  val baseUrl: String  = baseUrlFor("ioss-returns-frontend")
+  val route: String    = "/pay-vat-on-goods-sold-to-eu/import-one-stop-shop-returns-payments"
+  val homePage: String = s"$baseUrl$route/your-account"
+  val fullUrl: String  = baseUrl + route
 
   val loginUrl = baseUrlFor("auth-login-stub")
 
@@ -49,12 +50,16 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
       .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
       .formParam("enrolment[0].state", "Activated")
+      .formParam("enrolment[1].name", "HMRC-IOSS-ORG")
+      .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
+      .formParam("enrolment[1].taxIdentifier[0].value", "IM9001234567")
+      .formParam("enrolment[1].state", "Activated")
       .check(status.in(200, 303))
       .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
 
   def getHomePage =
     http("Get Home Page")
-      .get(fullUrl)
+      .get(homePage)
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(status.in(200))
 
