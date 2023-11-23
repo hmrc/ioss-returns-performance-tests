@@ -39,6 +39,8 @@ class ReturnsSimulation extends PerformanceTestRunner {
     postSalesToCountry("1", "5555"),
     getVatOnSales("1"),
     postVatOnSales("1"),
+    getAddSalesCountryList,
+    postAddSalesCountryList(false),
     getCheckYourAnswers
   )
 
