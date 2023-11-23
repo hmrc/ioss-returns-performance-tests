@@ -67,14 +67,14 @@ object ReturnsRequests extends ServicesConfiguration {
 
   def getStartReturn =
     http("Get Start Return page")
-      .get(fullUrl + "/start")
+      .get(fullUrl + "/2023-M10/start")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
   def postStartReturn =
     http("Post Start Returns")
-      .post(fullUrl + "/start")
+      .post(fullUrl + "/2023-M10/start")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
