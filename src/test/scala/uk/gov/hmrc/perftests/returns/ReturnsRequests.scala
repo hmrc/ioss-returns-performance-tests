@@ -17,8 +17,8 @@
 package uk.gov.hmrc.perftests.returns
 
 import io.gatling.core.Predef._
+import io.gatling.core.session.Expression
 import io.gatling.http.Predef._
-import io.gatling.http.request.builder.HttpRequestBuilder
 import uk.gov.hmrc.performance.conf.ServicesConfiguration
 
 object ReturnsRequests extends ServicesConfiguration {
@@ -29,6 +29,8 @@ object ReturnsRequests extends ServicesConfiguration {
   val fullUrl: String  = baseUrl + route
 
   val loginUrl = baseUrlFor("auth-login-stub")
+
+  def inputSelectorByName(name: String): Expression[String] = s"input[name='$name']"
 
   def goToAuthLoginPage =
     http("Go to Auth login page")
@@ -61,6 +63,103 @@ object ReturnsRequests extends ServicesConfiguration {
     http("Get Home Page")
       .get(homePage)
       .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(status.in(200))
+
+  def getStartReturn =
+    http("Get Start Return page")
+      .get(fullUrl + "/startReturn/2023-M10")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postStartReturn =
+    http("Post Start Returns")
+      .post(fullUrl + "/startReturn/2023-M10")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", true)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/soldGoods/2023-M10"))
+
+  def getSoldGoods =
+    http("Get Sold Goods page")
+      .get(fullUrl + "/soldGoods/2023-M10")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postSoldGoods =
+    http("Post Sold Goods")
+      .post(fullUrl + "/soldGoods/2023-M10")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", true)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/soldToCountry/2023-M10/1"))
+
+  def getSoldToCountry(index: String) =
+    http("Get Sold To Country page")
+      .get(fullUrl + s"/soldToCountry/2023-M10/$index")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postSoldToCountry(index: String, countryCode: String) =
+    http("Post Sold To Country")
+      .post(fullUrl + s"/soldToCountry/2023-M10/$index")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", countryCode)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/vatRatesFromCountry/2023-M10/$index"))
+
+  def getVatRatesFromCountry(index: String) =
+    http("Get Vat Rates From Country page")
+      .get(fullUrl + s"/vatRatesFromCountry/2023-M10/$index")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postVatRatesFromCountry(index: String, vatRate: String) =
+    http("Post Vat Rates From Country")
+      .post(fullUrl + s"/vatRatesFromCountry/2023-M10/$index")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value[0]", vatRate)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/salesToCountry/2023-M10/$index"))
+
+  def getSalesToCountry(index: String) =
+    http("Get Sales To Country page")
+      .get(fullUrl + s"/salesToCountry/2023-M10/$index")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postSalesToCountry(index: String, amount: String) =
+    http("Post Sales To Country")
+      .post(fullUrl + s"/salesToCountry/2023-M10/$index")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", amount)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/vatOnSales/2023-M10/$index"))
+
+  def getVatOnSales(index: String) =
+    http("Get VAT on Sales page")
+      .get(fullUrl + s"/vatOnSales/2023-M10/$index")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postVatOnSales(index: String) =
+    http("Post VAT on Sales")
+      .post(fullUrl + s"/vatOnSales/2023-M10/$index")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", "option1")
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/check-your-answers"))
+
+  def getCheckYourAnswers =
+    http("Get Check Your Answers page")
+      .get(fullUrl + s"/check-your-answers")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+//      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
 }

@@ -26,7 +26,20 @@ class ReturnsSimulation extends PerformanceTestRunner {
   setup("returns", "Returns Journey") withRequests (
     goToAuthLoginPage,
     upFrontAuthLogin,
-    getHomePage
+    getHomePage,
+    getStartReturn,
+    postStartReturn,
+    getSoldGoods,
+    postSoldGoods,
+    getSoldToCountry("1"),
+    postSoldToCountry("1", "AT"),
+    getVatRatesFromCountry("1"),
+    postVatRatesFromCountry("1", "twelvePercent"),
+    getSalesToCountry("1"),
+    postSalesToCountry("1", "5555"),
+    getVatOnSales("1"),
+    postVatOnSales("1"),
+    getCheckYourAnswers
   )
 
   runSimulation()
