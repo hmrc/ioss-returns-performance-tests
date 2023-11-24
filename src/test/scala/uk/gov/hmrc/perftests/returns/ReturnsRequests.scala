@@ -161,7 +161,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
   def testAddSalesCountryList(answer: Boolean) =
-    http("Add Trading Name")
+    http("Post Add Sales To EU")
       .post(s"$baseUrl$route/add-sales-country-list")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", answer)
