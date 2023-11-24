@@ -160,13 +160,21 @@ object ReturnsRequests extends ServicesConfiguration {
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
-  def postAddSalesCountryList(answer: Boolean) =
-    http("Post Add Sales To EU")
-      .post(fullUrl + s"/add-sales-country-list")
+  def testAddSalesCountryList(answer: Boolean) =
+    http("Add Trading Name")
+      .post(s"$baseUrl$route/add-sales-country-list")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", answer)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/check-your-answers"))
+
+  def postAddSalesCountryList(answer: Boolean, index: Option[String]) =
+    if (answer) {
+      testAddSalesCountryList(answer)
+        .check(header("Location").is(s"$route/soldToCountry/${index.get}"))
+    } else {
+      testAddSalesCountryList(answer)
+        .check(header("Location").is(s"$route/check-your-answers"))
+    }
 
   def getCheckYourAnswers =
     http("Get Check Your Answers page")
