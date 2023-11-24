@@ -34,7 +34,7 @@ class ReturnsSimulation extends PerformanceTestRunner {
     getSoldToCountry("1"),
     postSoldToCountry("1", "AT"),
     getVatRatesFromCountry("1"),
-    postVatRatesFromCountry("1", "twelvePercent"),
+    postVatRatesFromCountry("1", "20.0"),
     getSalesToCountry("1"),
     postSalesToCountry("1", "5555"),
     getVatOnSales("1"),
