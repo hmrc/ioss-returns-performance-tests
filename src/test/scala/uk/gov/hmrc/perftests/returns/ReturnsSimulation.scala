@@ -40,7 +40,17 @@ class ReturnsSimulation extends PerformanceTestRunner {
     getVatOnSales("1"),
     postVatOnSales("1"),
     getAddSalesCountryList,
-    postAddSalesCountryList(false),
+    postAddSalesCountryList(true, Some("2")),
+    getSoldToCountry("2"),
+    postSoldToCountry("2", "FR"),
+    getVatRatesFromCountry("2"),
+    postVatRatesFromCountry("2", "twelvePercent"),
+    getSalesToCountry("2"),
+    postSalesToCountry("2", "1234"),
+    getVatOnSales("2"),
+    postVatOnSales("2"),
+    getAddSalesCountryList,
+    postAddSalesCountryList(false, None),
     getCheckYourAnswers
   )
 
