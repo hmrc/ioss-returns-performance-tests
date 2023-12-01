@@ -177,7 +177,8 @@ object ReturnsRequests extends ServicesConfiguration {
 //        .check(header("Location").is(s"$route/check-your-answers"))
         .check(header("Location").is(s"$route/correct-previous-return"))
     }
-  def getCorrectPreviousReturn                                        =
+
+  def getCorrectPreviousReturn =
     http("Get Correct Previous Return page")
       .get(fullUrl + "/correct-previous-return")
       .header("Cookie", "mdtp=${mdtpCookie}")
