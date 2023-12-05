@@ -173,6 +173,31 @@ object ReturnsRequests extends ServicesConfiguration {
         .check(header("Location").is(s"$route/soldToCountry/${index.get}"))
     } else {
       testAddSalesCountryList(answer)
+//        Temporarily adding Correction page until logic is in to check if it is the first return
+//        .check(header("Location").is(s"$route/check-your-answers"))
+        .check(header("Location").is(s"$route/correct-previous-return"))
+    }
+
+  def getCorrectPreviousReturn =
+    http("Get Correct Previous Return page")
+      .get(fullUrl + "/correct-previous-return")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def testCorrectPreviousCountry(answer: Boolean) =
+    http("Post Correct Previous Country")
+      .post(s"$baseUrl$route/correct-previous-return")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", answer)
+      .check(status.in(200, 303))
+
+  def postCorrectPreviousReturn(answer: Boolean) =
+    if (answer) {
+      testCorrectPreviousCountry(answer)
+      // Not implemented yet
+    } else {
+      testCorrectPreviousCountry(answer)
         .check(header("Location").is(s"$route/check-your-answers"))
     }
 

@@ -51,6 +51,8 @@ class ReturnsSimulation extends PerformanceTestRunner {
     postVatOnSales("2"),
     getAddSalesCountryList,
     postAddSalesCountryList(false, None),
+    getCorrectPreviousReturn,
+    postCorrectPreviousReturn(false),
     getCheckYourAnswers
   )
 
