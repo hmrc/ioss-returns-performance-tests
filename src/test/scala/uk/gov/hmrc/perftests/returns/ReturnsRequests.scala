@@ -123,22 +123,22 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value[0]", vatRate)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/salesToCountry/$index"))
+      .check(header("Location").is(s"$route/sales-to-country/$index/1"))
 
-  def getSalesToCountry(index: String) =
+  def getSalesToCountry(countryIndex: String, vatRatesIndex: String) =
     http("Get Sales To Country page")
-      .get(fullUrl + s"/salesToCountry/$index")
+      .get(fullUrl + s"/sales-to-country/$countryIndex/$vatRatesIndex")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postSalesToCountry(index: String, amount: String) =
+  def postSalesToCountry(countryIndex: String, vatRatesIndex: String, amount: String) =
     http("Post Sales To Country")
-      .post(fullUrl + s"/salesToCountry/$index")
+      .post(fullUrl + s"/sales-to-country/$countryIndex/$vatRatesIndex")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", amount)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vatOnSales/$index"))
+      .check(header("Location").is(s"$route/vatOnSales/$countryIndex"))
 
   def getVatOnSales(index: String) =
     http("Get VAT on Sales page")
