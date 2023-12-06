@@ -138,29 +138,29 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", amount)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vatOnSales/$countryIndex"))
+      .check(header("Location").is(s"$route/vatOnSales/$countryIndex/$vatRatesIndex"))
 
-  def getVatOnSales(index: String) =
+  def getVatOnSales(countryIndex: String, vatRatesIndex: String) =
     http("Get VAT on Sales page")
-      .get(fullUrl + s"/vatOnSales/$index")
+      .get(fullUrl + s"/vatOnSales/$countryIndex/$vatRatesIndex")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postVatOnSales(index: String)            =
+  def postVatOnSales(countryIndex: String, vatRatesIndex: String) =
     http("Post VAT on Sales")
-      .post(fullUrl + s"/vatOnSales/$index")
+      .post(fullUrl + s"/vatOnSales/$countryIndex/$vatRatesIndex")
       .formParam("csrfToken", "${csrfToken}")
-      .formParam("value", "option1")
+      .formParam("choice", "option1")
       .check(status.in(200, 303))
       .check(header("Location").is(s"$route/add-sales-country-list"))
-  def getAddSalesCountryList                   =
+  def getAddSalesCountryList                                      =
     http("Get Add Sales Country List page")
       .get(fullUrl + s"/add-sales-country-list")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
-  def testAddSalesCountryList(answer: Boolean) =
+  def testAddSalesCountryList(answer: Boolean)                    =
     http("Post Add Sales To EU")
       .post(s"$baseUrl$route/add-sales-country-list")
       .formParam("csrfToken", "${csrfToken}")
