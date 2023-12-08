@@ -153,14 +153,31 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "${csrfToken}")
       .formParam("choice", "option1")
       .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/check-sales/$countryIndex"))
+
+  def getCheckSales(countryIndex: String) =
+    http("Get Check Sales page")
+      .get(fullUrl + s"/check-sales/$countryIndex")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCheckSales(countryIndex: String) =
+    http("Post Check Sales")
+      .post(fullUrl + s"/check-sales/$countryIndex")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", false)
+      .check(status.in(200, 303))
       .check(header("Location").is(s"$route/add-sales-country-list"))
-  def getAddSalesCountryList                                      =
+
+  def getAddSalesCountryList =
     http("Get Add Sales Country List page")
       .get(fullUrl + s"/add-sales-country-list")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
-  def testAddSalesCountryList(answer: Boolean)                    =
+
+  def testAddSalesCountryList(answer: Boolean) =
     http("Post Add Sales To EU")
       .post(s"$baseUrl$route/add-sales-country-list")
       .formParam("csrfToken", "${csrfToken}")
