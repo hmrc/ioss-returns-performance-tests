@@ -56,7 +56,17 @@ class ReturnsSimulation extends PerformanceTestRunner {
     getAddSalesCountryList,
     postAddSalesCountryList(false, None),
     getCorrectPreviousReturn,
-    postCorrectPreviousReturn(false),
+    postCorrectPreviousReturn(true),
+    getCorrectionCountry("1", "1"),
+    postCorrectionCountry("HU", "1", "1"),
+    getAddNewCountry("1", "1"),
+    postAddNewCountry("1", "1"),
+    getCountryVatCorrectionAmount("1", "1"),
+    postCountryVatCorrectionAmount("555.55", "1", "1"),
+    getVatPayableConfirm("1", "1"),
+    postVatPayableConfirm("1", "1"),
+    getCorrectionCountriesList("1"),
+    postCorrectionCountriesList("1"),
     getCheckYourAnswers
   )
 
