@@ -218,6 +218,81 @@ object ReturnsRequests extends ServicesConfiguration {
         .check(header("Location").is(s"$route/check-your-answers"))
     }
 
+  def getCorrectionCountry(countryIndex: String, correctionIndex: String) =
+    http("Get Correction Country page")
+      .get(fullUrl + s"/correction-country/$correctionIndex/$countryIndex")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCorrectionCountry(countryCode: String, countryIndex: String, correctionIndex: String) =
+    http("Post Correction Country")
+      .post(fullUrl + s"/correction-country/$correctionIndex/$countryIndex")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", countryCode)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/add-new-country/$correctionIndex/$countryIndex"))
+
+  def getAddNewCountry(countryIndex: String, correctionIndex: String) =
+    http("Get Add New Country page")
+      .get(fullUrl + s"/add-new-country/$correctionIndex/$countryIndex")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postAddNewCountry(countryIndex: String, correctionIndex: String) =
+    http("Post Add New Country")
+      .post(fullUrl + s"/add-new-country/$correctionIndex/$countryIndex")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", true)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/country-vat-correction-amount/$correctionIndex/$countryIndex"))
+
+  def getCountryVatCorrectionAmount(countryIndex: String, correctionIndex: String) =
+    http("Get Country Vat Correction Amount page")
+      .get(fullUrl + s"/country-vat-correction-amount/$correctionIndex/$countryIndex")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCountryVatCorrectionAmount(amount: String, countryIndex: String, correctionIndex: String) =
+    http("Post Country Vat Correction Amount")
+      .post(fullUrl + s"/country-vat-correction-amount/$correctionIndex/$countryIndex")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", amount)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/vat-payable-confirm/$correctionIndex/$countryIndex"))
+
+  def getVatPayableConfirm(countryIndex: String, correctionIndex: String) =
+    http("Get Vat Payable Confirm page")
+      .get(fullUrl + s"/vat-payable-confirm/$correctionIndex/$countryIndex")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postVatPayableConfirm(countryIndex: String, correctionIndex: String) =
+    http("Post Vat Payable Confirm")
+      .post(fullUrl + s"/vat-payable-confirm/$correctionIndex/$countryIndex")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", true)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/correction-list-countries/$correctionIndex"))
+
+  def getCorrectionCountriesList(correctionIndex: String) =
+    http("Get Correction Countries List page")
+      .get(fullUrl + s"/correction-list-countries/$correctionIndex")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCorrectionCountriesList(correctionIndex: String) =
+    http("Post Correction Countries List")
+      .post(fullUrl + s"/correction-list-countries/$correctionIndex")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", false)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/check-your-answers"))
+
   def getCheckYourAnswers =
     http("Get Check Your Answers page")
       .get(fullUrl + s"/check-your-answers")
