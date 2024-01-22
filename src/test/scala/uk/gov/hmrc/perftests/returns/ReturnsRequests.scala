@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 HM Revenue & Customs
+ * Copyright 2024 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -297,7 +297,19 @@ object ReturnsRequests extends ServicesConfiguration {
     http("Get Check Your Answers page")
       .get(fullUrl + s"/check-your-answers")
       .header("Cookie", "mdtp=${mdtpCookie}")
-//      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCheckYourAnswers =
+    http("Post Check Your Answers page")
+      .post(fullUrl + s"/check-your-answers?incompletePromptShown=false")
+      .formParam("csrfToken", "${csrfToken}")
+      .check(status.in(200, 303))
+
+  def getReturnSubmitted =
+    http("Get Return Submitted page")
+      .get(fullUrl + s"/successfully-submitted")
+      .header("Cookie", "mdtp=${mdtpCookie}")
       .check(status.in(200))
 
 }
