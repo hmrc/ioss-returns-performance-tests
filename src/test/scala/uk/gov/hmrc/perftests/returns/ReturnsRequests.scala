@@ -67,14 +67,14 @@ object ReturnsRequests extends ServicesConfiguration {
 
   def getStartReturn =
     http("Get Start Return page")
-      .get(fullUrl + "/2023-M10/start")
+      .get(fullUrl + "/2023-M12/start")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
   def postStartReturn =
     http("Post Start Returns")
-      .post(fullUrl + "/2023-M10/start")
+      .post(fullUrl + "/2023-M12/start")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
@@ -212,11 +212,41 @@ object ReturnsRequests extends ServicesConfiguration {
   def postCorrectPreviousReturn(answer: Boolean) =
     if (answer) {
       testCorrectPreviousCountry(answer)
-      // Not implemented yet
+        .check(header("Location").is(s"$route/correction-return-year/1"))
     } else {
       testCorrectPreviousCountry(answer)
         .check(header("Location").is(s"$route/check-your-answers"))
     }
+
+  def getCorrectionYear =
+    http("Get Correction Year page")
+      .get(fullUrl + "/correction-return-year/1")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCorrectionYear =
+    http("Post Correction Year")
+      .post(fullUrl + "/correction-return-year/1")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", "2023")
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/correction-return-period/1"))
+
+  def getCorrectionMonth =
+    http("Get Correction Month page")
+      .get(fullUrl + "/correction-return-period/1")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCorrectionMonth =
+    http("Post Correction Month")
+      .post(fullUrl + "/correction-return-period/1")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", "2023-M10")
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/correction-country/1/1"))
 
   def getCorrectionCountry(countryIndex: String, correctionIndex: String) =
     http("Get Correction Country page")
@@ -288,6 +318,21 @@ object ReturnsRequests extends ServicesConfiguration {
   def postCorrectionCountriesList(correctionIndex: String) =
     http("Post Correction Countries List")
       .post(fullUrl + s"/correction-list-countries/$correctionIndex")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", false)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/2023-M12/vat-correction-periods"))
+
+  def getCorrectionPeriods() =
+    http("Get Correction Periods page")
+      .get(fullUrl + s"/2023-M12/vat-correction-periods")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postCorrectionPeriods() =
+    http("Post Correction Periods")
+      .post(fullUrl + s"/2023-M12/vat-correction-periods")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", false)
       .check(status.in(200, 303))
