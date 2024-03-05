@@ -321,18 +321,18 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", false)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/2023-M12/vat-correction-periods"))
+      .check(header("Location").is(s"$route/2023-M12/vat-correction-periods-add"))
 
   def getCorrectionPeriods() =
     http("Get Correction Periods page")
-      .get(fullUrl + s"/2023-M12/vat-correction-periods")
+      .get(fullUrl + s"/2023-M12/vat-correction-periods-add")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
   def postCorrectionPeriods() =
     http("Post Correction Periods")
-      .post(fullUrl + s"/2023-M12/vat-correction-periods")
+      .post(fullUrl + s"/2023-M12/vat-correction-periods-add")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", false)
       .check(status.in(200, 303))
