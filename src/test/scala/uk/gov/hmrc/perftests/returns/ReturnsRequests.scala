@@ -43,7 +43,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("authorityId", "")
       .formParam("gatewayToken", "")
       .formParam("credentialStrength", "strong")
-      .formParam("confidenceLevel", "50")
+      .formParam("confidenceLevel", "250")
       .formParam("affinityGroup", "Organisation")
       .formParam("email", "user@test.com")
       .formParam("credentialRole", "User")
@@ -78,48 +78,48 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/soldGoods"))
+      .check(header("Location").is(s"$route/sold-goods"))
 
   def getSoldGoods =
     http("Get Sold Goods page")
-      .get(fullUrl + "/soldGoods")
+      .get(fullUrl + "/sold-goods")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
   def postSoldGoods =
     http("Post Sold Goods")
-      .post(fullUrl + "/soldGoods")
+      .post(fullUrl + "/sold-goods")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/soldToCountry/1"))
+      .check(header("Location").is(s"$route/sold-to-country/1"))
 
   def getSoldToCountry(index: String) =
     http("Get Sold To Country page")
-      .get(fullUrl + s"/soldToCountry/$index")
+      .get(fullUrl + s"/sold-to-country/$index")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
   def postSoldToCountry(index: String, countryCode: String) =
     http("Post Sold To Country")
-      .post(fullUrl + s"/soldToCountry/$index")
+      .post(fullUrl + s"/sold-to-country/$index")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", countryCode)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vatRatesFromCountry/$index"))
+      .check(header("Location").is(s"$route/vat-rates-from-country/$index"))
 
   def getVatRatesFromCountry(index: String) =
     http("Get Vat Rates From Country page")
-      .get(fullUrl + s"/vatRatesFromCountry/$index")
+      .get(fullUrl + s"/vat-rates-from-country/$index")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
   def postVatRatesFromCountry(index: String, vatRate: String) =
     http("Post Vat Rates From Country")
-      .post(fullUrl + s"/vatRatesFromCountry/$index")
+      .post(fullUrl + s"/vat-rates-from-country/$index")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value[0]", vatRate)
       .check(status.in(200, 303))
@@ -138,18 +138,18 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", amount)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vatOnSales/$countryIndex/$vatRatesIndex"))
+      .check(header("Location").is(s"$route/vat-on-sales/$countryIndex/$vatRatesIndex"))
 
   def getVatOnSales(countryIndex: String, vatRatesIndex: String) =
     http("Get VAT on Sales page")
-      .get(fullUrl + s"/vatOnSales/$countryIndex/$vatRatesIndex")
+      .get(fullUrl + s"/vat-on-sales/$countryIndex/$vatRatesIndex")
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
   def postVatOnSales(countryIndex: String, vatRatesIndex: String) =
     http("Post VAT on Sales")
-      .post(fullUrl + s"/vatOnSales/$countryIndex/$vatRatesIndex")
+      .post(fullUrl + s"/vat-on-sales/$countryIndex/$vatRatesIndex")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("choice", "option1")
       .check(status.in(200, 303))
@@ -187,11 +187,9 @@ object ReturnsRequests extends ServicesConfiguration {
   def postAddSalesCountryList(answer: Boolean, index: Option[String]) =
     if (answer) {
       testAddSalesCountryList(answer)
-        .check(header("Location").is(s"$route/soldToCountry/${index.get}"))
+        .check(header("Location").is(s"$route/sold-to-country/${index.get}"))
     } else {
       testAddSalesCountryList(answer)
-//        Temporarily adding Correction page until logic is in to check if it is the first return
-//        .check(header("Location").is(s"$route/check-your-answers"))
         .check(header("Location").is(s"$route/correct-previous-return"))
     }
 
