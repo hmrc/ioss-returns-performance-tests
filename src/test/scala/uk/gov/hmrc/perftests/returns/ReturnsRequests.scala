@@ -21,6 +21,8 @@ import io.gatling.core.session.Expression
 import io.gatling.http.Predef._
 import uk.gov.hmrc.performance.conf.ServicesConfiguration
 
+import java.time.LocalDate
+
 object ReturnsRequests extends ServicesConfiguration {
 
   val baseUrl: String  = baseUrlFor("ioss-returns-frontend")
@@ -38,7 +40,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200, 303))
 
   def upFrontAuthLogin =
-    http("Enter Auth login credentials ")
+    http("Enter Auth login credentials")
       .post(loginUrl + s"/auth-login-stub/gg-sign-in")
       .formParam("authorityId", "")
       .formParam("gatewayToken", "")
@@ -56,6 +58,36 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
       .formParam("enrolment[1].taxIdentifier[0].value", "IM9001234567")
       .formParam("enrolment[1].state", "Activated")
+      .check(status.in(200, 303))
+      .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
+
+  def upFrontAuthLoginMultipleIOSSNumbers =
+    http("Enter Auth login credentials for multiple IOSS Numbers")
+      .post(loginUrl + s"/auth-login-stub/gg-sign-in")
+      .formParam("authorityId", "")
+      .formParam("gatewayToken", "")
+      .formParam("credentialStrength", "strong")
+      .formParam("confidenceLevel", "250")
+      .formParam("affinityGroup", "Organisation")
+      .formParam("email", "user@test.com")
+      .formParam("credentialRole", "User")
+      .formParam("redirectionUrl", route)
+      .formParam("enrolment[0].name", "HMRC-MTD-VAT")
+      .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
+      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].state", "Activated")
+      .formParam("enrolment[1].name", "HMRC-IOSS-ORG")
+      .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
+      .formParam("enrolment[1].taxIdentifier[0].value", "IM9007230003")
+      .formParam("enrolment[1].state", "Activated")
+      .formParam("enrolment[2].name", "HMRC-IOSS-ORG")
+      .formParam("enrolment[2].taxIdentifier[0].name", "IOSSNumber")
+      .formParam("enrolment[2].taxIdentifier[0].value", "IM9007230002")
+      .formParam("enrolment[2].state", "Activated")
+      .formParam("enrolment[3].name", "HMRC-IOSS-ORG")
+      .formParam("enrolment[3].taxIdentifier[0].name", "IOSSNumber")
+      .formParam("enrolment[3].taxIdentifier[0].value", "IM9007230001")
+      .formParam("enrolment[3].state", "Activated")
       .check(status.in(200, 303))
       .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
 
@@ -355,4 +387,36 @@ object ReturnsRequests extends ServicesConfiguration {
       .header("Cookie", "mdtp=${mdtpCookie}")
       .check(status.in(200))
 
+  def getPastReturns =
+    http("Get Past Returns page")
+      .get(fullUrl + "/past-returns")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(status.in(200))
+
+  def getReturnRegistrationSelection =
+    http("Get Return Registration Selection page")
+      .get(fullUrl + "/return-registration-selection")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postReturnRegistrationSelection(selection: String)                      =
+    http("Answer Return Registration Selection Page")
+      .post(fullUrl + "/return-registration-selection")
+      .formParam("csrfToken", "${csrfToken}")
+      .formParam("value", selection)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/view-returns-multiple-reg"))
+  def testPastReturnsPreviousRegistration(period: String, iossNumber: String) =
+    http("Get Past Returns Previous Registration page")
+      .get(fullUrl + s"/past-returns/$period/$iossNumber")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(status.in(200))
+
+  def getPastReturnsPreviousRegistration(month: Int, iossNumber: String) = {
+    val returnMonth  = LocalDate.now().minusMonths(month).getMonthValue
+    val returnYear   = LocalDate.now().minusMonths(month).getYear
+    val periodString = s"$returnYear-M$returnMonth"
+    testPastReturnsPreviousRegistration(periodString, iossNumber)
+  }
 }
