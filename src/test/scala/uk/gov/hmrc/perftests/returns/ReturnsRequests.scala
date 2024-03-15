@@ -43,7 +43,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("authorityId", "")
       .formParam("gatewayToken", "")
       .formParam("credentialStrength", "strong")
-      .formParam("confidenceLevel", "50")
+      .formParam("confidenceLevel", "250")
       .formParam("affinityGroup", "Organisation")
       .formParam("email", "user@test.com")
       .formParam("credentialRole", "User")
