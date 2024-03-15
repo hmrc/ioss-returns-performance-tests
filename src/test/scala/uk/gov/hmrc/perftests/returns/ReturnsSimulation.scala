@@ -76,5 +76,20 @@ class ReturnsSimulation extends PerformanceTestRunner {
     getReturnSubmitted
   )
 
+  setup("submittedReturnsForMultipleIOSSNumbers", "Submitted Returns for Multiple IOSS Numbers Journey") withRequests (
+    goToAuthLoginPage,
+    upFrontAuthLoginMultipleIOSSNumbers,
+    getHomePage,
+    getPastReturns,
+    getReturnRegistrationSelection,
+    postReturnRegistrationSelection("IM9007230001"),
+    getPastReturnsPreviousRegistration(9, "IM9007230001"),
+    getHomePage,
+    getPastReturns,
+    getReturnRegistrationSelection,
+    postReturnRegistrationSelection("IM9007230002"),
+    getPastReturnsPreviousRegistration(6, "IM9007230002")
+  )
+
   runSimulation()
 }
