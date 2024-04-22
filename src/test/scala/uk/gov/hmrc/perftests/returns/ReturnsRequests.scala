@@ -196,7 +196,7 @@ object ReturnsRequests extends ServicesConfiguration {
 
   def postCheckSales(countryIndex: String) =
     http("Post Check Sales")
-      .post(fullUrl + s"/check-sales/$countryIndex")
+      .post(fullUrl + s"/check-sales/$countryIndex?incompletePromptShown=false")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", false)
       .check(status.in(200, 303))
@@ -211,7 +211,7 @@ object ReturnsRequests extends ServicesConfiguration {
 
   def testAddSalesCountryList(answer: Boolean) =
     http("Post Add Sales To EU")
-      .post(s"$baseUrl$route/add-sales-country-list")
+      .post(s"$baseUrl$route/add-sales-country-list?incompletePromptShown=false")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", answer)
       .check(status.in(200, 303))
@@ -336,6 +336,20 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/vat-payable-check/$correctionIndex/$countryIndex"))
+
+  def getVatPayableCheck(countryIndex: String, correctionIndex: String) =
+    http("Get Vat Payable Check page")
+      .get(fullUrl + s"/vat-payable-check/$correctionIndex/$countryIndex")
+      .header("Cookie", "mdtp=${mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postVatPayableCheck(countryIndex: String, correctionIndex: String) =
+    http("Post Vat Payable Check")
+      .post(fullUrl + s"/vat-payable-check/$correctionIndex/$countryIndex?incompletePromptShown=false")
+      .formParam("csrfToken", "${csrfToken}")
+      .check(status.in(200, 303))
       .check(header("Location").is(s"$route/correction-list-countries/$correctionIndex"))
 
   def getCorrectionCountriesList(correctionIndex: String) =
@@ -347,7 +361,7 @@ object ReturnsRequests extends ServicesConfiguration {
 
   def postCorrectionCountriesList(correctionIndex: String) =
     http("Post Correction Countries List")
-      .post(fullUrl + s"/correction-list-countries/$correctionIndex")
+      .post(fullUrl + s"/correction-list-countries/$correctionIndex?incompletePromptShown=false")
       .formParam("csrfToken", "${csrfToken}")
       .formParam("value", false)
       .check(status.in(200, 303))
