@@ -69,6 +69,8 @@ class ReturnsSimulation extends PerformanceTestRunner {
     postCountryVatCorrectionAmount("555.55", "1", "1"),
     getVatPayableConfirm("1", "1"),
     postVatPayableConfirm("1", "1"),
+    getVatPayableCheck("1", "1"),
+    postVatPayableCheck("1", "1"),
     getCorrectionCountriesList("1"),
     postCorrectionCountriesList("1"),
     getCheckYourAnswers,
