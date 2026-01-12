@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ object ReturnsRequests extends ServicesConfiguration {
   val route: String    = "/pay-vat-on-goods-sold-to-eu/import-one-stop-shop-returns-payments"
   val homePage: String = s"$baseUrl$route/your-account"
   val fullUrl: String  = baseUrl + route
+  val intermediaryUrl  = s"$baseUrl$route/start-return-as-intermediary/IM9001144771"
 
   val loginUrl = baseUrlFor("auth-login-stub")
 
@@ -94,15 +95,52 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200, 303))
       .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
 
+  def upFrontAuthLoginIntermediary =
+    http("Enter Auth login credentials for intermediary")
+      .post(loginUrl + s"/auth-login-stub/gg-sign-in")
+      .formParam("csrfToken", "#{csrfToken}")
+      .formParam("authorityId", "")
+      .formParam("gatewayToken", "")
+      .formParam("credentialStrength", "strong")
+      .formParam("confidenceLevel", "50")
+      .formParam("affinityGroup", "Organisation")
+      .formParam("email", "user@test.com")
+      .formParam("credentialRole", "User")
+      .formParam("redirectionUrl", intermediaryUrl)
+      .formParam("enrolment[0].name", "HMRC-MTD-VAT")
+      .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
+      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].state", "Activated")
+      .formParam("enrolment[1].name", "HMRC-IOSS-INT")
+      .formParam("enrolment[1].taxIdentifier[0].name", "IntNumber")
+      .formParam("enrolment[1].taxIdentifier[0].value", "IN9001234567")
+      .formParam("enrolment[1].state", "Activated")
+      .check(status.in(200, 303))
+      .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
+
   def getHomePage =
     http("Get Home Page")
       .get(homePage)
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200))
 
+  def getIntermediaryStart =
+    http("Get Intermediary endpoint")
+      .get(intermediaryUrl)
+      .header("Cookie", "mdtp=#{mdtpCookie}")
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/2025-M3/start-return"))
+
   def getStartReturn =
     http("Get Start Return page")
       .get(fullUrl + "/2023-M12/start-return")
+      .header("Cookie", "mdtp=#{mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def getStartReturnIntermediary =
+    http("Get Start Return page for intermediary")
+      .get(fullUrl + "/2025-M3/start-return")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
@@ -115,6 +153,14 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200, 303))
       .check(header("Location").is(s"$route/sold-goods"))
 
+  def postStartReturnIntermediary =
+    http("Post Start Returns for intermediary")
+      .post(fullUrl + "/2025-M3/start-return")
+      .formParam("csrfToken", "#{csrfToken}")
+      .formParam("value", true)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/sold-goods"))
+
   def getSoldGoods =
     http("Get Sold Goods page")
       .get(fullUrl + "/sold-goods")
@@ -122,13 +168,21 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postSoldGoods =
-    http("Post Sold Goods")
+  def testSoldGoods(answer: Boolean) =
+    http("Post Add Sales To EU")
       .post(fullUrl + "/sold-goods")
       .formParam("csrfToken", "#{csrfToken}")
-      .formParam("value", true)
+      .formParam("value", answer)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/sold-to-country/1"))
+
+  def postSoldGoods(answer: Boolean) =
+    if (answer) {
+      testSoldGoods(answer)
+        .check(header("Location").is(s"$route/sold-to-country/1"))
+    } else {
+      testSoldGoods(answer)
+        .check(header("Location").is(s"$route/correct-previous-return"))
+    }
 
   def getSoldToCountry(index: String) =
     http("Get Sold To Country page")

@@ -1,5 +1,5 @@
 /*
- * Copyright 2024 HM Revenue & Customs
+ * Copyright 2026 HM Revenue & Customs
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ class ReturnsSimulation extends PerformanceTestRunner {
     getStartReturn,
     postStartReturn,
     getSoldGoods,
-    postSoldGoods,
+    postSoldGoods(true),
     getSoldToCountry("1"),
     postSoldToCountry("1", "AT"),
     getVatRatesFromCountry("1"),
@@ -91,6 +91,21 @@ class ReturnsSimulation extends PerformanceTestRunner {
     getReturnRegistrationSelection,
     postReturnRegistrationSelection("IM9007230002"),
     getPastReturnsPreviousRegistration(6, "IM9007230002")
+  )
+
+  setup("intermediaryReturns", "Returns Journey as an Intermediary") withRequests (
+    goToAuthLoginPage,
+    upFrontAuthLoginIntermediary,
+    getIntermediaryStart,
+    getStartReturnIntermediary,
+    postStartReturnIntermediary,
+    getSoldGoods,
+    postSoldGoods(false),
+    getCorrectPreviousReturn,
+    postCorrectPreviousReturn(false),
+    getCheckYourAnswers,
+    postCheckYourAnswers,
+    getReturnSubmitted
   )
 
   runSimulation()
