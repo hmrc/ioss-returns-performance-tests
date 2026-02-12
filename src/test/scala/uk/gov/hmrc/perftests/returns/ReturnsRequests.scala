@@ -151,13 +151,28 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/sold-goods"))
+      .check(header("Location").is(s"$route/want-to-upload-file"))
 
   def postStartReturnIntermediary =
     http("Post Start Returns for intermediary")
       .post(fullUrl + "/2025-M3/start-return")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/want-to-upload-file"))
+
+  def getWantToUploadFile =
+    http("Get Want To Upload File page")
+      .get(fullUrl + "/want-to-upload-file")
+      .header("Cookie", "mdtp=#{mdtpCookie}")
+      .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
+      .check(status.in(200))
+
+  def postWantToUploadFile =
+    http("Post Want To Upload File")
+      .post(fullUrl + "/want-to-upload-file")
+      .formParam("csrfToken", "#{csrfToken}")
+      .formParam("value", false)
       .check(status.in(200, 303))
       .check(header("Location").is(s"$route/sold-goods"))
 
