@@ -26,7 +26,7 @@ class ReturnsSimulation extends PerformanceTestRunner {
 
   setup("returns", "Returns Journey") withRequests (
     goToAuthLoginPage,
-    upFrontAuthLogin,
+    upFrontAuthLogin("IM9001478521"),
     getHomePage,
     getStartReturn,
     postStartReturn,
@@ -115,7 +115,7 @@ class ReturnsSimulation extends PerformanceTestRunner {
 
   setup("fileUpload", "Returns File Upload Journey") withActions (
     goToAuthLoginPage,
-    upFrontAuthLogin,
+    upFrontAuthLogin("IM9001478522"),
     getHomePage,
     getStartReturn,
     postStartReturn,

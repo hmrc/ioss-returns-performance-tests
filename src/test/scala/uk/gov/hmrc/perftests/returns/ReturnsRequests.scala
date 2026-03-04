@@ -53,7 +53,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200, 303))
 
-  def upFrontAuthLogin =
+  def upFrontAuthLogin(iossNumber: String) =
     http("Enter Auth login credentials")
       .post(loginUrl + s"/auth-login-stub/gg-sign-in")
       .formParam("csrfToken", "#{csrfToken}")
@@ -71,7 +71,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("enrolment[0].state", "Activated")
       .formParam("enrolment[1].name", "HMRC-IOSS-ORG")
       .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
-      .formParam("enrolment[1].taxIdentifier[0].value", "IM9001478521")
+      .formParam("enrolment[1].taxIdentifier[0].value", iossNumber)
       .formParam("enrolment[1].state", "Activated")
       .check(status.in(200, 303))
       .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
