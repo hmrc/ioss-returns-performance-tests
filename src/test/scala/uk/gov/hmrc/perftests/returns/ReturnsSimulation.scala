@@ -18,6 +18,7 @@ package uk.gov.hmrc.perftests.returns
 
 import uk.gov.hmrc.performance.simulation.PerformanceTestRunner
 import uk.gov.hmrc.perftests.returns.ReturnsRequests._
+import uk.gov.hmrc.perftests.returns.GatlingCompat.chainToAction
 
 class ReturnsSimulation extends PerformanceTestRunner {
 
@@ -30,7 +31,7 @@ class ReturnsSimulation extends PerformanceTestRunner {
     getStartReturn,
     postStartReturn,
     getWantToUploadFile,
-    postWantToUploadFile,
+    postWantToUploadFile(false),
     getSoldGoods,
     postSoldGoods(true),
     getSoldToCountry("1"),
@@ -100,11 +101,30 @@ class ReturnsSimulation extends PerformanceTestRunner {
     upFrontAuthLoginIntermediary,
     getIntermediaryStart,
     getWantToUploadFile,
-    postWantToUploadFile,
+    postWantToUploadFile(false),
     getStartReturnIntermediary,
     postStartReturnIntermediary,
     getSoldGoods,
     postSoldGoods(false),
+    getCorrectPreviousReturn,
+    postCorrectPreviousReturn(false),
+    getCheckYourAnswers,
+    postCheckYourAnswers,
+    getReturnSubmitted
+  )
+
+  setup("fileUpload", "Returns File Upload Journey") withActions (
+    goToAuthLoginPage,
+    upFrontAuthLogin,
+    getHomePage,
+    getStartReturn,
+    postStartReturn,
+    getWantToUploadFile,
+    postWantToUploadFile(true),
+    getFileUpload,
+    postFileUpload, pause(10),
+    getFileUploaded,
+    postFileUploaded,
     getCorrectPreviousReturn,
     postCorrectPreviousReturn(false),
     getCheckYourAnswers,

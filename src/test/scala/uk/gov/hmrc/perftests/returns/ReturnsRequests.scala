@@ -17,11 +17,20 @@
 package uk.gov.hmrc.perftests.returns
 
 import io.gatling.core.Predef._
+import io.gatling.core.action.builder.ActionBuilder
 import io.gatling.core.session.Expression
+import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.Predef._
 import uk.gov.hmrc.performance.conf.ServicesConfiguration
+import uk.gov.hmrc.perftests.returns.Utils.FileUploadChecks._
 
 import java.time.LocalDate
+import scala.concurrent.duration.DurationInt
+
+object GatlingCompat {
+  implicit def chainToAction(chain: ChainBuilder): ActionBuilder =
+    chain.actionBuilders.head
+}
 
 object ReturnsRequests extends ServicesConfiguration {
 
@@ -34,6 +43,9 @@ object ReturnsRequests extends ServicesConfiguration {
   val loginUrl = baseUrlFor("auth-login-stub")
 
   def inputSelectorByName(name: String): Expression[String] = s"input[name='$name']"
+
+  def pause(duration: Int = 3): ChainBuilder =
+    io.gatling.core.Predef.pause(duration.seconds)
 
   def goToAuthLoginPage =
     http("Go to Auth login page")
@@ -168,13 +180,84 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postWantToUploadFile =
+  def testWantToUploadFile(answer: Boolean) =
     http("Post Want To Upload File")
       .post(fullUrl + "/want-to-upload-file")
       .formParam("csrfToken", "#{csrfToken}")
-      .formParam("value", false)
+      .formParam("value", answer)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/sold-goods"))
+
+  def postWantToUploadFile(answer: Boolean) =
+    if (answer) {
+      testWantToUploadFile(answer)
+        .check(header("Location").is(s"$route/file-upload"))
+    } else {
+      testWantToUploadFile(answer)
+        .check(header("Location").is(s"$route/sold-goods"))
+    }
+
+  def getFileUpload =
+    http("Get File Upload page")
+      .get(fullUrl + "/file-upload")
+      .header("Cookie", "mdtp=#{mdtpCookie}")
+      .check(status.in(200))
+      .check(saveFileUploadUrl)
+      .check(saveCallBack)
+      .check(saveAmazonDate)
+      .check(saveSuccessRedirect)
+      .check(saveAmazonCredential)
+      .check(saveUpscanInitiateResponse)
+      .check(saveUpscanInitiateReceived)
+      .check(saveAmazonMetaOriginalFileName)
+      .check(saveAMZMetaRequestId)
+      .check(saveAmazonAlgorithm)
+      .check(saveKey)
+      .check(saveAcl)
+      .check(saveAMZMetaSessionId)
+      .check(saveConsumingService)
+      .check(saveAmazonSignature)
+      .check(saveErrorRedirect)
+      .check(savePolicy)
+
+  def postFileUpload =
+    http("Post File Upload page")
+      .post(s => s("fileUploadAmazonUrl").as[String])
+      .header("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryjoqtomO5urVl5B6N")
+      .asMultipartForm
+      .bodyPart(StringBodyPart("x-amz-meta-callback-url", "#{callBack}"))
+      .bodyPart(StringBodyPart("x-amz-date", "#{amazonDate}"))
+      .bodyPart(StringBodyPart("success_action_redirect", "#{successRedirect}"))
+      .bodyPart(StringBodyPart("x-amz-credential", "#{amazonCredential}"))
+      .bodyPart(StringBodyPart("x-amz-meta-upscan-initiate-response", "#{upscanInitiateResponse}"))
+      .bodyPart(StringBodyPart("x-amz-meta-upscan-initiate-received", "#{upscanInitiateReceived}"))
+      .bodyPart(StringBodyPart("x-amz-meta-request-id", "#{amazonMetaRequestID}"))
+      .bodyPart(StringBodyPart("x-amz-meta-original-filename", "#{amazonMetaOriginalFileName}"))
+      .bodyPart(StringBodyPart("x-amz-algorithm", "#{amazonAlgorithm}"))
+      .bodyPart(StringBodyPart("key", "#{key}"))
+      .bodyPart(StringBodyPart("acl", "#{acl}"))
+      .bodyPart(StringBodyPart("x-amz-signature", "#{amazonSignature}"))
+      .bodyPart(StringBodyPart("error_action_redirect", "#{errorRedirect}"))
+      .bodyPart(StringBodyPart("x-amz-meta-session-id", "#{amazonMetaSessionID}"))
+      .bodyPart(StringBodyPart("x-amz-meta-consuming-service", "#{consumingService}"))
+      .bodyPart(StringBodyPart("policy", "#{policy}"))
+      .bodyPart(RawFileBodyPart("file", "data/fileUpload.csv"))
+      .check(status.in(200, 303))
+      .check(currentLocation.saveAs("bulkUploadSuccessUrl"))
+      .check(header("Location").transform(_.contains(s"$route/file-uploaded")).is(true))
+      .check(header("Location").saveAs("fileUpload"))
+
+  def getFileUploaded =
+    http("Get File Uploaded page")
+      .get("#{fileUpload}")
+      .check(status.in(200))
+
+  def postFileUploaded =
+    http("Post File Uploaded page")
+      .post("#{fileUpload}")
+      .formParam("csrfToken", "#{csrfToken}")
+      .formParam("value", true)
+      .check(status.in(200, 303))
+      .check(header("Location").is(s"$route/correct-previous-return"))
 
   def getSoldGoods =
     http("Get Sold Goods page")
@@ -282,7 +365,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200))
 
   def testAddSalesCountryList(answer: Boolean) =
-    http("Post Add Sales To EU")
+    http("Post Add Sales Country List page")
       .post(s"$baseUrl$route/add-sales-country-list?incompletePromptShown=false")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", answer)
