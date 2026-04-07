@@ -85,14 +85,14 @@ class ReturnsSimulation extends PerformanceTestRunner {
     goToAuthLoginPage,
     upFrontAuthLoginMultipleIOSSNumbers,
     getHomePage,
-    getPastReturns,
-    getReturnRegistrationSelection,
-    postReturnRegistrationSelection("IM9007230001"),
+    getPastReturns("IM9007230001"),
+    getReturnRegistrationSelection("IM9007230001"),
+    postReturnRegistrationSelection("IM9007230001", "IM9007230001"),
     getPastReturnsPreviousRegistration(9, "IM9007230001"),
     getHomePage,
-    getPastReturns,
-    getReturnRegistrationSelection,
-    postReturnRegistrationSelection("IM9007230002"),
+    getPastReturns("IM9007230001"),
+    getReturnRegistrationSelection("IM9007230001"),
+    postReturnRegistrationSelection("IM9007230001", "IM9007230002"),
     getPastReturnsPreviousRegistration(6, "IM9007230002")
   )
 

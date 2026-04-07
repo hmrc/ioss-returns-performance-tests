@@ -68,7 +68,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("redirectionUrl", route)
       .formParam("enrolment[0].name", "HMRC-MTD-VAT")
       .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
-      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].taxIdentifier[0].value", "#{vrn}")
       .formParam("enrolment[0].state", "Activated")
       .formParam("enrolment[1].name", "HMRC-IOSS-ORG")
       .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
@@ -91,7 +91,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("redirectionUrl", route)
       .formParam("enrolment[0].name", "HMRC-MTD-VAT")
       .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
-      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].taxIdentifier[0].value", "#{vrn}")
       .formParam("enrolment[0].state", "Activated")
       .formParam("enrolment[1].name", "HMRC-IOSS-ORG")
       .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
@@ -122,7 +122,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("redirectionUrl", intermediaryUrl)
       .formParam("enrolment[0].name", "HMRC-MTD-VAT")
       .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
-      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].taxIdentifier[0].value", "#{vrn}")
       .formParam("enrolment[0].state", "Activated")
       .formParam("enrolment[1].name", "HMRC-IOSS-INT")
       .formParam("enrolment[1].taxIdentifier[0].name", "IntNumber")
@@ -164,7 +164,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/want-to-upload-file"))
+      .check(header("Location").is(s"$route/$iossNumber/want-to-upload-file"))
 
   def postStartReturnIntermediary(iossNumber: String): HttpRequestBuilder =
     http("Post Start Returns for intermediary")
@@ -172,7 +172,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/want-to-upload-file"))
+      .check(header("Location").is(s"$route/$iossNumber/want-to-upload-file"))
 
   def getWantToUploadFile(iossNumber: String): HttpRequestBuilder =
     http("Get Want To Upload File page")
@@ -437,7 +437,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", "2023-M10")
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/correction-country/1/1"))
+      .check(header("Location").is(s"$route/$iossNumber/correction-country/1/1"))
 
   def getCorrectionCountry(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Get Correction Country page")
@@ -576,26 +576,27 @@ object ReturnsRequests extends ServicesConfiguration {
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200))
 
-  def getPastReturns =
+  def getPastReturns(iossNumber: String) =
     http("Get Past Returns page")
-      .get(fullUrl + "/past-returns")
+      .get(fullUrl + s"/$iossNumber/past-returns")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200))
 
-  def getReturnRegistrationSelection =
+  def getReturnRegistrationSelection(iossNumber: String) =
     http("Get Return Registration Selection page")
-      .get(fullUrl + "/return-registration-selection")
+      .get(fullUrl + s"/$iossNumber/return-registration-selection")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postReturnRegistrationSelection(selection: String)                      =
+  def postReturnRegistrationSelection(iossNumber: String, selection: String) =
     http("Answer Return Registration Selection Page")
-      .post(fullUrl + "/return-registration-selection")
+      .post(fullUrl + s"/$iossNumber/return-registration-selection")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", selection)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/view-returns-multiple-reg"))
+      .check(header("Location").is(s"$route/$iossNumber/view-returns-multiple-reg"))
+
   def testPastReturnsPreviousRegistration(period: String, iossNumber: String) =
     http("Get Past Returns Previous Registration page")
       .get(fullUrl + s"/past-returns/$period/$iossNumber")
