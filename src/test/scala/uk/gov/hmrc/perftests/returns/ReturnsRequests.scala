@@ -21,6 +21,7 @@ import io.gatling.core.action.builder.ActionBuilder
 import io.gatling.core.session.Expression
 import io.gatling.core.structure.ChainBuilder
 import io.gatling.http.Predef._
+import io.gatling.http.request.builder.HttpRequestBuilder
 import uk.gov.hmrc.performance.conf.ServicesConfiguration
 import uk.gov.hmrc.perftests.returns.Utils.FileUploadChecks._
 
@@ -47,13 +48,13 @@ object ReturnsRequests extends ServicesConfiguration {
   def pause(duration: Int = 3): ChainBuilder =
     io.gatling.core.Predef.pause(duration.seconds)
 
-  def goToAuthLoginPage =
+  def goToAuthLoginPage: HttpRequestBuilder =
     http("Go to Auth login page")
       .get(loginUrl + s"/auth-login-stub/gg-sign-in")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200, 303))
 
-  def upFrontAuthLogin(iossNumber: String) =
+  def upFrontAuthLogin(iossNumber: String): HttpRequestBuilder =
     http("Enter Auth login credentials")
       .post(loginUrl + s"/auth-login-stub/gg-sign-in")
       .formParam("csrfToken", "#{csrfToken}")
@@ -67,7 +68,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("redirectionUrl", route)
       .formParam("enrolment[0].name", "HMRC-MTD-VAT")
       .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
-      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].taxIdentifier[0].value", "#{vrn}")
       .formParam("enrolment[0].state", "Activated")
       .formParam("enrolment[1].name", "HMRC-IOSS-ORG")
       .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
@@ -76,7 +77,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200, 303))
       .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
 
-  def upFrontAuthLoginMultipleIOSSNumbers =
+  def upFrontAuthLoginMultipleIOSSNumbers: HttpRequestBuilder =
     http("Enter Auth login credentials for multiple IOSS Numbers")
       .post(loginUrl + s"/auth-login-stub/gg-sign-in")
       .formParam("csrfToken", "#{csrfToken}")
@@ -90,7 +91,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("redirectionUrl", route)
       .formParam("enrolment[0].name", "HMRC-MTD-VAT")
       .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
-      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].taxIdentifier[0].value", "#{vrn}")
       .formParam("enrolment[0].state", "Activated")
       .formParam("enrolment[1].name", "HMRC-IOSS-ORG")
       .formParam("enrolment[1].taxIdentifier[0].name", "IOSSNumber")
@@ -107,7 +108,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200, 303))
       .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
 
-  def upFrontAuthLoginIntermediary =
+  def upFrontAuthLoginIntermediary: HttpRequestBuilder =
     http("Enter Auth login credentials for intermediary")
       .post(loginUrl + s"/auth-login-stub/gg-sign-in")
       .formParam("csrfToken", "#{csrfToken}")
@@ -121,7 +122,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("redirectionUrl", intermediaryUrl)
       .formParam("enrolment[0].name", "HMRC-MTD-VAT")
       .formParam("enrolment[0].taxIdentifier[0].name", "VRN")
-      .formParam("enrolment[0].taxIdentifier[0].value", "${vrn}")
+      .formParam("enrolment[0].taxIdentifier[0].value", "#{vrn}")
       .formParam("enrolment[0].state", "Activated")
       .formParam("enrolment[1].name", "HMRC-IOSS-INT")
       .formParam("enrolment[1].taxIdentifier[0].name", "IntNumber")
@@ -130,75 +131,75 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200, 303))
       .check(headerRegex("Set-Cookie", """mdtp=(.*)""").saveAs("mdtpCookie"))
 
-  def getHomePage =
+  def getHomePage: HttpRequestBuilder =
     http("Get Home Page")
       .get(homePage)
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200))
 
-  def getIntermediaryStart =
+  def getIntermediaryStart(iossNumber: String): HttpRequestBuilder =
     http("Get Intermediary endpoint")
       .get(intermediaryUrl)
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/2025-M3/start-return"))
+      .check(header("Location").is(s"$route/$iossNumber/2025-M3/start-return"))
 
-  def getStartReturn =
+  def getStartReturn(iossNumber: String): HttpRequestBuilder =
     http("Get Start Return page")
-      .get(fullUrl + "/2023-M12/start-return")
+      .get(fullUrl + s"/$iossNumber/2023-M12/start-return")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def getStartReturnIntermediary =
+  def getStartReturnIntermediary(iossNumber: String): HttpRequestBuilder =
     http("Get Start Return page for intermediary")
-      .get(fullUrl + "/2025-M3/start-return")
+      .get(fullUrl + s"/$iossNumber/2025-M3/start-return")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postStartReturn =
+  def postStartReturn(iossNumber: String): HttpRequestBuilder =
     http("Post Start Returns")
-      .post(fullUrl + "/2023-M12/start-return")
+      .post(fullUrl + s"/$iossNumber/2023-M12/start-return")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/want-to-upload-file"))
+      .check(header("Location").is(s"$route/$iossNumber/want-to-upload-file"))
 
-  def postStartReturnIntermediary =
+  def postStartReturnIntermediary(iossNumber: String): HttpRequestBuilder =
     http("Post Start Returns for intermediary")
-      .post(fullUrl + "/2025-M3/start-return")
+      .post(fullUrl + s"/$iossNumber/2025-M3/start-return")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/want-to-upload-file"))
+      .check(header("Location").is(s"$route/$iossNumber/want-to-upload-file"))
 
-  def getWantToUploadFile =
+  def getWantToUploadFile(iossNumber: String): HttpRequestBuilder =
     http("Get Want To Upload File page")
-      .get(fullUrl + "/want-to-upload-file")
+      .get(fullUrl + s"/$iossNumber/want-to-upload-file")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def testWantToUploadFile(answer: Boolean) =
+  def testWantToUploadFile(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     http("Post Want To Upload File")
-      .post(fullUrl + "/want-to-upload-file")
+      .post(fullUrl + s"/$iossNumber/want-to-upload-file")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", answer)
       .check(status.in(200, 303))
 
-  def postWantToUploadFile(answer: Boolean) =
+  def postWantToUploadFile(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     if (answer) {
-      testWantToUploadFile(answer)
-        .check(header("Location").is(s"$route/file-upload"))
+      testWantToUploadFile(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/file-upload"))
     } else {
-      testWantToUploadFile(answer)
-        .check(header("Location").is(s"$route/sold-goods"))
+      testWantToUploadFile(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/sold-goods"))
     }
 
-  def getFileUpload =
+  def getFileUpload(iossNumber: String): HttpRequestBuilder =
     http("Get File Upload page")
-      .get(fullUrl + "/file-upload")
+      .get(fullUrl + s"/$iossNumber/file-upload")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200))
       .check(saveFileUploadUrl)
@@ -219,7 +220,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(saveErrorRedirect)
       .check(savePolicy)
 
-  def postFileUpload =
+  def postFileUpload(iossNumber: String): HttpRequestBuilder =
     http("Post File Upload page")
       .post(s => s("fileUploadAmazonUrl").as[String])
       .header("Content-Type", "multipart/form-data; boundary=----WebKitFormBoundaryjoqtomO5urVl5B6N")
@@ -243,293 +244,312 @@ object ReturnsRequests extends ServicesConfiguration {
       .bodyPart(RawFileBodyPart("file", "data/fileUpload.csv"))
       .check(status.in(200, 303))
       .check(currentLocation.saveAs("bulkUploadSuccessUrl"))
-      .check(header("Location").transform(_.contains(s"$route/file-uploaded")).is(true))
+      .check(header("Location").transform(_.contains(s"$route/$iossNumber/file-uploaded")).is(true))
       .check(header("Location").saveAs("fileUpload"))
 
-  def getFileUploaded =
+  def getFileUploaded: HttpRequestBuilder =
     http("Get File Uploaded page")
       .get("#{fileUpload}")
       .check(status.in(200))
 
-  def postFileUploaded =
+  def postFileUploaded(iossNumber: String): HttpRequestBuilder =
     http("Post File Uploaded page")
       .post("#{fileUpload}")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/correct-previous-return"))
+      .check(header("Location").is(s"$route/$iossNumber/correct-previous-return"))
 
-  def getSoldGoods =
+  def getSoldGoods(iossNumber: String): HttpRequestBuilder =
     http("Get Sold Goods page")
-      .get(fullUrl + "/sold-goods")
+      .get(fullUrl + s"/$iossNumber/sold-goods")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def testSoldGoods(answer: Boolean) =
+  def testSoldGoods(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     http("Post Add Sales To EU")
-      .post(fullUrl + "/sold-goods")
+      .post(fullUrl + s"/$iossNumber/sold-goods")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", answer)
       .check(status.in(200, 303))
 
-  def postSoldGoods(answer: Boolean) =
+  def postSoldGoods(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     if (answer) {
-      testSoldGoods(answer)
-        .check(header("Location").is(s"$route/sold-to-country/1"))
+      testSoldGoods(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/sold-to-country/1"))
     } else {
-      testSoldGoods(answer)
-        .check(header("Location").is(s"$route/correct-previous-return"))
+      testSoldGoods(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/correct-previous-return"))
     }
 
-  def getSoldToCountry(index: String) =
+  def getSoldToCountry(iossNumber: String, index: String): HttpRequestBuilder =
     http("Get Sold To Country page")
-      .get(fullUrl + s"/sold-to-country/$index")
+      .get(fullUrl + s"/$iossNumber/sold-to-country/$index")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postSoldToCountry(index: String, countryCode: String) =
+  def postSoldToCountry(iossNumber: String, index: String, countryCode: String): HttpRequestBuilder =
     http("Post Sold To Country")
-      .post(fullUrl + s"/sold-to-country/$index")
+      .post(fullUrl + s"/$iossNumber/sold-to-country/$index")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", countryCode)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vat-rates-from-country/$index"))
+      .check(header("Location").is(s"$route/$iossNumber/vat-rates-from-country/$index"))
 
-  def getVatRatesFromCountry(index: String) =
+  def getVatRatesFromCountry(iossNumber: String, index: String): HttpRequestBuilder =
     http("Get Vat Rates From Country page")
-      .get(fullUrl + s"/vat-rates-from-country/$index")
+      .get(fullUrl + s"/$iossNumber/vat-rates-from-country/$index")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postVatRatesFromCountry(index: String, vatRate: String) =
+  def postVatRatesFromCountry(iossNumber: String, index: String, vatRate: String): HttpRequestBuilder =
     http("Post Vat Rates From Country")
-      .post(fullUrl + s"/vat-rates-from-country/$index")
+      .post(fullUrl + s"/$iossNumber/vat-rates-from-country/$index")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value[0]", vatRate)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/sales-to-country/$index/1"))
+      .check(header("Location").is(s"$route/$iossNumber/sales-to-country/$index/1"))
 
-  def getSalesToCountry(countryIndex: String, vatRatesIndex: String) =
+  def getSalesToCountry(iossNumber: String, countryIndex: String, vatRatesIndex: String): HttpRequestBuilder =
     http("Get Sales To Country page")
-      .get(fullUrl + s"/sales-to-country/$countryIndex/$vatRatesIndex")
+      .get(fullUrl + s"/$iossNumber/sales-to-country/$countryIndex/$vatRatesIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postSalesToCountry(countryIndex: String, vatRatesIndex: String, amount: String) =
+  def postSalesToCountry(
+    iossNumber: String,
+    countryIndex: String,
+    vatRatesIndex: String,
+    amount: String
+  ): HttpRequestBuilder =
     http("Post Sales To Country")
-      .post(fullUrl + s"/sales-to-country/$countryIndex/$vatRatesIndex")
+      .post(fullUrl + s"/$iossNumber/sales-to-country/$countryIndex/$vatRatesIndex")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", amount)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vat-on-sales/$countryIndex/$vatRatesIndex"))
+      .check(header("Location").is(s"$route/$iossNumber/vat-on-sales/$countryIndex/$vatRatesIndex"))
 
-  def getVatOnSales(countryIndex: String, vatRatesIndex: String) =
+  def getVatOnSales(iossNumber: String, countryIndex: String, vatRatesIndex: String): HttpRequestBuilder =
     http("Get VAT on Sales page")
-      .get(fullUrl + s"/vat-on-sales/$countryIndex/$vatRatesIndex")
+      .get(fullUrl + s"/$iossNumber/vat-on-sales/$countryIndex/$vatRatesIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postVatOnSales(countryIndex: String, vatRatesIndex: String) =
+  def postVatOnSales(iossNumber: String, countryIndex: String, vatRatesIndex: String): HttpRequestBuilder =
     http("Post VAT on Sales")
-      .post(fullUrl + s"/vat-on-sales/$countryIndex/$vatRatesIndex")
+      .post(fullUrl + s"/$iossNumber/vat-on-sales/$countryIndex/$vatRatesIndex")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("choice", "option1")
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/check-sales/$countryIndex"))
+      .check(header("Location").is(s"$route/$iossNumber/check-sales/$countryIndex"))
 
-  def getCheckSales(countryIndex: String) =
+  def getCheckSales(iossNumber: String, countryIndex: String): HttpRequestBuilder =
     http("Get Check Sales page")
-      .get(fullUrl + s"/check-sales/$countryIndex")
+      .get(fullUrl + s"/$iossNumber/check-sales/$countryIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCheckSales(countryIndex: String) =
+  def postCheckSales(iossNumber: String, countryIndex: String): HttpRequestBuilder =
     http("Post Check Sales")
-      .post(fullUrl + s"/check-sales/$countryIndex?incompletePromptShown=false")
+      .post(fullUrl + s"/$iossNumber/check-sales/$countryIndex?incompletePromptShown=false")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", false)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/add-sales-country-list"))
+      .check(header("Location").is(s"$route/$iossNumber/add-sales-country-list"))
 
-  def getAddSalesCountryList =
+  def getAddSalesCountryList(iossNumber: String): HttpRequestBuilder =
     http("Get Add Sales Country List page")
-      .get(fullUrl + s"/add-sales-country-list")
+      .get(fullUrl + s"/$iossNumber/add-sales-country-list")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def testAddSalesCountryList(answer: Boolean) =
+  def testAddSalesCountryList(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     http("Post Add Sales Country List page")
-      .post(s"$baseUrl$route/add-sales-country-list?incompletePromptShown=false")
+      .post(s"$baseUrl$route/$iossNumber/add-sales-country-list?incompletePromptShown=false")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", answer)
       .check(status.in(200, 303))
 
-  def postAddSalesCountryList(answer: Boolean, index: Option[String]) =
+  def postAddSalesCountryList(iossNumber: String, answer: Boolean, index: Option[String]): HttpRequestBuilder =
     if (answer) {
-      testAddSalesCountryList(answer)
-        .check(header("Location").is(s"$route/sold-to-country/${index.get}"))
+      testAddSalesCountryList(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/sold-to-country/${index.get}"))
     } else {
-      testAddSalesCountryList(answer)
-        .check(header("Location").is(s"$route/correct-previous-return"))
+      testAddSalesCountryList(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/correct-previous-return"))
     }
 
-  def getCorrectPreviousReturn =
+  def getCorrectPreviousReturn(iossNumber: String): HttpRequestBuilder =
     http("Get Correct Previous Return page")
-      .get(fullUrl + "/correct-previous-return")
+      .get(fullUrl + s"/$iossNumber/correct-previous-return")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def testCorrectPreviousCountry(answer: Boolean) =
+  def testCorrectPreviousCountry(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     http("Post Correct Previous Country")
-      .post(s"$baseUrl$route/correct-previous-return")
+      .post(s"$baseUrl$route/$iossNumber/correct-previous-return")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", answer)
       .check(status.in(200, 303))
 
-  def postCorrectPreviousReturn(answer: Boolean) =
+  def postCorrectPreviousReturn(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     if (answer) {
-      testCorrectPreviousCountry(answer)
-        .check(header("Location").is(s"$route/correction-return-year/1"))
+      testCorrectPreviousCountry(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/correction-return-year/1"))
     } else {
-      testCorrectPreviousCountry(answer)
-        .check(header("Location").is(s"$route/check-your-answers"))
+      testCorrectPreviousCountry(iossNumber, answer)
+        .check(header("Location").is(s"$route/$iossNumber/check-your-answers"))
     }
 
-  def getCorrectionYear =
+  def getCorrectionYear(iossNumber: String): HttpRequestBuilder =
     http("Get Correction Year page")
-      .get(fullUrl + "/correction-return-year/1")
+      .get(fullUrl + s"/$iossNumber/correction-return-year/1")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCorrectionYear =
+  def postCorrectionYear(iossNumber: String): HttpRequestBuilder =
     http("Post Correction Year")
-      .post(fullUrl + "/correction-return-year/1")
+      .post(fullUrl + s"/$iossNumber/correction-return-year/1")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", "2023")
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/correction-return-month/1"))
+      .check(header("Location").is(s"$route/$iossNumber/correction-return-month/1"))
 
-  def getCorrectionMonth =
+  def getCorrectionMonth(iossNumber: String): HttpRequestBuilder =
     http("Get Correction Month page")
-      .get(fullUrl + "/correction-return-month/1")
+      .get(fullUrl + s"/$iossNumber/correction-return-month/1")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCorrectionMonth =
+  def postCorrectionMonth(iossNumber: String): HttpRequestBuilder =
     http("Post Correction Month")
-      .post(fullUrl + "/correction-return-month/1")
+      .post(fullUrl + s"/$iossNumber/correction-return-month/1")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", "2023-M10")
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/correction-country/1/1"))
+      .check(header("Location").is(s"$route/$iossNumber/correction-country/1/1"))
 
-  def getCorrectionCountry(countryIndex: String, correctionIndex: String) =
+  def getCorrectionCountry(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Get Correction Country page")
-      .get(fullUrl + s"/correction-country/$correctionIndex/$countryIndex")
+      .get(fullUrl + s"/$iossNumber/correction-country/$correctionIndex/$countryIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCorrectionCountry(countryCode: String, countryIndex: String, correctionIndex: String) =
+  def postCorrectionCountry(
+    iossNumber: String,
+    countryCode: String,
+    countryIndex: String,
+    correctionIndex: String
+  ): HttpRequestBuilder =
     http("Post Correction Country")
-      .post(fullUrl + s"/correction-country/$correctionIndex/$countryIndex")
+      .post(fullUrl + s"/$iossNumber/correction-country/$correctionIndex/$countryIndex")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", countryCode)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/add-new-country/$correctionIndex/$countryIndex"))
+      .check(header("Location").is(s"$route/$iossNumber/add-new-country/$correctionIndex/$countryIndex"))
 
-  def getAddNewCountry(countryIndex: String, correctionIndex: String) =
+  def getAddNewCountry(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Get Add New Country page")
-      .get(fullUrl + s"/add-new-country/$correctionIndex/$countryIndex")
+      .get(fullUrl + s"/$iossNumber/add-new-country/$correctionIndex/$countryIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postAddNewCountry(countryIndex: String, correctionIndex: String) =
+  def postAddNewCountry(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Post Add New Country")
-      .post(fullUrl + s"/add-new-country/$correctionIndex/$countryIndex")
+      .post(fullUrl + s"/$iossNumber/add-new-country/$correctionIndex/$countryIndex")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/country-vat-correction-amount/$correctionIndex/$countryIndex"))
+      .check(header("Location").is(s"$route/$iossNumber/country-vat-correction-amount/$correctionIndex/$countryIndex"))
 
-  def getCountryVatCorrectionAmount(countryIndex: String, correctionIndex: String) =
+  def getCountryVatCorrectionAmount(
+    iossNumber: String,
+    countryIndex: String,
+    correctionIndex: String
+  ): HttpRequestBuilder =
     http("Get Country Vat Correction Amount page")
-      .get(fullUrl + s"/country-vat-correction-amount/$correctionIndex/$countryIndex")
+      .get(fullUrl + s"/$iossNumber/country-vat-correction-amount/$correctionIndex/$countryIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCountryVatCorrectionAmount(amount: String, countryIndex: String, correctionIndex: String) =
+  def postCountryVatCorrectionAmount(
+    iossNumber: String,
+    amount: String,
+    countryIndex: String,
+    correctionIndex: String
+  ): HttpRequestBuilder =
     http("Post Country Vat Correction Amount")
-      .post(fullUrl + s"/country-vat-correction-amount/$correctionIndex/$countryIndex")
+      .post(fullUrl + s"/$iossNumber/country-vat-correction-amount/$correctionIndex/$countryIndex")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", amount)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vat-payable-confirm/$correctionIndex/$countryIndex"))
+      .check(header("Location").is(s"$route/$iossNumber/vat-payable-confirm/$correctionIndex/$countryIndex"))
 
-  def getVatPayableConfirm(countryIndex: String, correctionIndex: String) =
+  def getVatPayableConfirm(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Get Vat Payable Confirm page")
-      .get(fullUrl + s"/vat-payable-confirm/$correctionIndex/$countryIndex")
+      .get(fullUrl + s"/$iossNumber/vat-payable-confirm/$correctionIndex/$countryIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postVatPayableConfirm(countryIndex: String, correctionIndex: String) =
+  def postVatPayableConfirm(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Post Vat Payable Confirm")
-      .post(fullUrl + s"/vat-payable-confirm/$correctionIndex/$countryIndex")
+      .post(fullUrl + s"/$iossNumber/vat-payable-confirm/$correctionIndex/$countryIndex")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/vat-payable-check/$correctionIndex/$countryIndex"))
+      .check(header("Location").is(s"$route/$iossNumber/vat-payable-check/$correctionIndex/$countryIndex"))
 
-  def getVatPayableCheck(countryIndex: String, correctionIndex: String) =
+  def getVatPayableCheck(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Get Vat Payable Check page")
-      .get(fullUrl + s"/vat-payable-check/$correctionIndex/$countryIndex")
+      .get(fullUrl + s"/$iossNumber/vat-payable-check/$correctionIndex/$countryIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postVatPayableCheck(countryIndex: String, correctionIndex: String) =
+  def postVatPayableCheck(iossNumber: String, countryIndex: String, correctionIndex: String): HttpRequestBuilder =
     http("Post Vat Payable Check")
-      .post(fullUrl + s"/vat-payable-check/$correctionIndex/$countryIndex?incompletePromptShown=false")
+      .post(fullUrl + s"/$iossNumber/vat-payable-check/$correctionIndex/$countryIndex?incompletePromptShown=false")
       .formParam("csrfToken", "#{csrfToken}")
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/correction-list-countries/$correctionIndex"))
+      .check(header("Location").is(s"$route/$iossNumber/correction-list-countries/$correctionIndex"))
 
-  def getCorrectionCountriesList(correctionIndex: String) =
+  def getCorrectionCountriesList(iossNumber: String, correctionIndex: String): HttpRequestBuilder =
     http("Get Correction Countries List page")
-      .get(fullUrl + s"/correction-list-countries/$correctionIndex")
+      .get(fullUrl + s"/$iossNumber/correction-list-countries/$correctionIndex")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCorrectionCountriesList(correctionIndex: String) =
+  def postCorrectionCountriesList(iossNumber: String, correctionIndex: String): HttpRequestBuilder =
     http("Post Correction Countries List")
-      .post(fullUrl + s"/correction-list-countries/$correctionIndex?incompletePromptShown=false")
+      .post(fullUrl + s"/$iossNumber/correction-list-countries/$correctionIndex?incompletePromptShown=false")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", false)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/2023-M12/vat-correction-months-add"))
+      .check(header("Location").is(s"$route/$iossNumber/2023-M12/vat-correction-months-add"))
 
-  def getCorrectionPeriods() =
+  def getCorrectionPeriods(): HttpRequestBuilder =
     http("Get Correction Periods page")
       .get(fullUrl + s"/2023-M12/vat-correction-months-add")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCorrectionPeriods() =
+  def postCorrectionPeriods(): HttpRequestBuilder =
     http("Post Correction Periods")
       .post(fullUrl + s"/2023-M12/vat-correction-months-add")
       .formParam("csrfToken", "#{csrfToken}")
@@ -537,45 +557,46 @@ object ReturnsRequests extends ServicesConfiguration {
       .check(status.in(200, 303))
       .check(header("Location").is(s"$route/check-your-answers"))
 
-  def getCheckYourAnswers =
+  def getCheckYourAnswers(iossNumber: String): HttpRequestBuilder =
     http("Get Check Your Answers page")
-      .get(fullUrl + s"/check-your-answers")
+      .get(fullUrl + s"/$iossNumber/check-your-answers")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postCheckYourAnswers =
+  def postCheckYourAnswers(iossNumber: String): HttpRequestBuilder =
     http("Post Check Your Answers page")
-      .post(fullUrl + s"/check-your-answers?incompletePromptShown=false")
+      .post(fullUrl + s"/$iossNumber/check-your-answers?incompletePromptShown=false")
       .formParam("csrfToken", "#{csrfToken}")
       .check(status.in(200, 303))
 
-  def getReturnSubmitted =
+  def getReturnSubmitted(iossNumber: String): HttpRequestBuilder =
     http("Get Return Submitted page")
-      .get(fullUrl + s"/return-successfully-submitted")
+      .get(fullUrl + s"/$iossNumber/return-successfully-submitted")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200))
 
-  def getPastReturns =
+  def getPastReturns(iossNumber: String) =
     http("Get Past Returns page")
-      .get(fullUrl + "/past-returns")
+      .get(fullUrl + s"/$iossNumber/past-returns")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(status.in(200))
 
-  def getReturnRegistrationSelection =
+  def getReturnRegistrationSelection(iossNumber: String) =
     http("Get Return Registration Selection page")
-      .get(fullUrl + "/return-registration-selection")
+      .get(fullUrl + s"/$iossNumber/return-registration-selection")
       .header("Cookie", "mdtp=#{mdtpCookie}")
       .check(css(inputSelectorByName("csrfToken"), "value").saveAs("csrfToken"))
       .check(status.in(200))
 
-  def postReturnRegistrationSelection(selection: String)                      =
+  def postReturnRegistrationSelection(iossNumber: String, selection: String) =
     http("Answer Return Registration Selection Page")
-      .post(fullUrl + "/return-registration-selection")
+      .post(fullUrl + s"/$iossNumber/return-registration-selection")
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", selection)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/view-returns-multiple-reg"))
+      .check(header("Location").is(s"$route/$iossNumber/view-returns-multiple-reg"))
+
   def testPastReturnsPreviousRegistration(period: String, iossNumber: String) =
     http("Get Past Returns Previous Registration page")
       .get(fullUrl + s"/past-returns/$period/$iossNumber")
