@@ -164,7 +164,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/$iossNumber/want-to-upload-file"))
+      .check(header("Location").is(s"$route/$iossNumber/sold-goods"))
 
   def postStartReturnIntermediary(iossNumber: String): HttpRequestBuilder =
     http("Post Start Returns for intermediary")
@@ -172,7 +172,7 @@ object ReturnsRequests extends ServicesConfiguration {
       .formParam("csrfToken", "#{csrfToken}")
       .formParam("value", true)
       .check(status.in(200, 303))
-      .check(header("Location").is(s"$route/$iossNumber/want-to-upload-file"))
+      .check(header("Location").is(s"$route/$iossNumber/sold-goods"))
 
   def getWantToUploadFile(iossNumber: String): HttpRequestBuilder =
     http("Get Want To Upload File page")
@@ -194,7 +194,7 @@ object ReturnsRequests extends ServicesConfiguration {
         .check(header("Location").is(s"$route/$iossNumber/file-upload"))
     } else {
       testWantToUploadFile(iossNumber, answer)
-        .check(header("Location").is(s"$route/$iossNumber/sold-goods"))
+        .check(header("Location").is(s"$route/$iossNumber/sold-to-country/1"))
     }
 
   def getFileUpload(iossNumber: String): HttpRequestBuilder =
@@ -277,7 +277,7 @@ object ReturnsRequests extends ServicesConfiguration {
   def postSoldGoods(iossNumber: String, answer: Boolean): HttpRequestBuilder =
     if (answer) {
       testSoldGoods(iossNumber, answer)
-        .check(header("Location").is(s"$route/$iossNumber/sold-to-country/1"))
+        .check(header("Location").is(s"$route/$iossNumber/want-to-upload-file"))
     } else {
       testSoldGoods(iossNumber, answer)
         .check(header("Location").is(s"$route/$iossNumber/correct-previous-return"))
